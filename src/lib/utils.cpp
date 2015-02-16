@@ -169,7 +169,7 @@ void matches2points_nndr(const std::vector<cv::KeyPoint>& train,
 }
 
 /* ************************************************************************* */
-void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
+cv::Mat compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
                             std::vector<cv::Point2f>& inliers,
                             float error, bool use_fund) {
 
@@ -196,6 +196,7 @@ void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
       }
     }
   }
+    return H;
 }
 
 /* ************************************************************************* */

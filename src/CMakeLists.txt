@@ -53,9 +53,13 @@ target_link_libraries(akaze_features AKAZE)
 add_executable(akaze_match akaze_match.cpp)
 target_link_libraries(akaze_match AKAZE)
 
+# Image matching program
+add_executable(descriptor_compare descriptor_compare.cpp)
+target_link_libraries(descriptor_compare AKAZE)
+
 # Program that compares AKAZE with ORB and BRISK
-add_executable(akaze_compare akaze_compare.cpp)
-target_link_libraries(akaze_compare AKAZE)
+#add_executable(akaze_compare akaze_compare.cpp)
+#target_link_libraries(akaze_compare AKAZE)
 
 # ============================================================================ #
 # Library installation
