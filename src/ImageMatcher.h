@@ -7,6 +7,30 @@
 const float MIN_H_ERROR = 2.50f;            ///< Maximum error in pixels to accept an inlier
 const float DRATIO = 0.80f;                 ///< NNDR Matching value
 
+static bool checkHomography(cv::Mat& h) {
+    //find the determinant, if < 0, orientation non-preserving
+    const double det = h.at<double>(0, 0) * h.at<double>(1, 1) - h.at<double>(1, 0) * h.at<double>(1, 0);
+    if (det < 0)
+        return false;
+    const double N1 = sqrt(h.at<double>(0, 0) * h.at<double>(0, 0) + h.at<double>(1, 0) * h.at<double>(1, 0));
+    if (N1 > 4 || N1 < 0.1)
+        return false;
+
+    const double N2 = sqrt(h.at<double>(0, 1) * h.at<double>(0, 1) + h.at<double>(1, 1) * h.at<double>(1, 1));
+    if (N2 > 4 || N2 < 0.1)
+        return false;
+
+    const double N3 = sqrt(h.at<double>(2, 0) * h.at<double>(2, 0) + h.at<double>(2, 1) * h.at<double>(2, 1));
+    if (N3 > 0.002)
+        return false;
+
+    return true;
+}
+
+static double det(double x1, double y1, double x2, double y2) {
+    return (x1 * y2) - (y1 * x2);
+}
+
 class AKazeDetector {
 public:
     void detect(cv::Mat& img1, cv::Mat& img2, std::vector<cv::KeyPoint>& kpts1, std::vector<cv::KeyPoint>& kpts2,
@@ -143,24 +167,7 @@ public:
             }
             std::cout << std::endl;
         }
-
-        //TODO: manage perspective transform check and return matching score
-        //split out the inliers to training image and query image.
-        cv::Mat pp = cv::Mat_<double>(3, inliers.size() / 2);
-        cv::Mat p = cv::Mat_<double>(3, inliers.size() / 2);
-
-
-        for(std::vector<cv::Point2f>::size_type i = 0; i < inliers.size(); i +=2) {
-            p.at<double>(0, i) = inliers[i].x;
-            p.at<double>(1, i) = inliers[i].y;
-            p.at<double>(2, i) = 1;
-            pp.at<double>(0, i) = inliers[i+1].x;
-            pp.at<double>(1, i) = inliers[i+1].y;
-            pp.at<double>(2, i) = 1;
-            std::cout << "x: " << p.at<double>(0, i) << " y: " << p.at<double>(1, i) << " z: " << p.at<double>(2, i) << std::endl;
-            std::cout << "x: " << pp.at<double>(0, i) << " y: " << pp.at<double>(1, i) << " z: " <<  pp.at<double>(2, i) << std::endl;
-        }
-
+        std::cout << "Valid Homography: " << checkHomography(h) << std::endl;
     }
     void show() {
 
@@ -209,10 +216,37 @@ public:
 
         //wrap perspective for the original logo to the target
         std::vector<cv::Point2f> obj_corners(4);
-        obj_corners[0] = cvPoint(0,0); obj_corners[1] = cvPoint( img1_rgb.cols, 0 );
-        obj_corners[2] = cvPoint( img1_rgb.cols, img1_rgb.rows ); obj_corners[3] = cvPoint( 0, img1_rgb.rows );
+        obj_corners[0] = cvPoint(0,0);
+        obj_corners[1] = cvPoint( img1_rgb.cols, 0 );
+        obj_corners[2] = cvPoint( img1_rgb.cols, img1_rgb.rows );
+        obj_corners[3] = cvPoint( 0, img1_rgb.rows );
         std::vector<cv::Point2f> scene_corners(4);
         perspectiveTransform(obj_corners, scene_corners, h);
+
+        //TODO: pick 4 inliers and try to warp perspective and verfiy cross ratio?
+
+        double cross_ratio_orig = (det(obj_corners[0].x, obj_corners[0].y, obj_corners[3].x, obj_corners[3].y) *
+                det(obj_corners[1].x, obj_corners[1].y, obj_corners[2].x, obj_corners[2].y))
+                / (det(obj_corners[0].x, obj_corners[0].y, obj_corners[1].x, obj_corners[1].y) *
+                det(obj_corners[3].x, obj_corners[3].y, obj_corners[2].x, obj_corners[2].y));
+
+        double cross_ratio_transformed = (det(scene_corners[0].x, scene_corners[0].y, scene_corners[3].x, scene_corners[3].y) *
+                det(scene_corners[1].x, scene_corners[1].y, scene_corners[2].x, scene_corners[2].y))
+                / (det(scene_corners[0].x, scene_corners[0].y, scene_corners[1].x, scene_corners[1].y) *
+                det(scene_corners[3].x, scene_corners[3].y, scene_corners[2].x, scene_corners[2].y));
+
+        double original_area = cv::contourArea(obj_corners);
+        double area = cv::contourArea(scene_corners);
+        double a = det(obj_corners[0].x, obj_corners[0].y, obj_corners[3].x, obj_corners[3].y);
+        double b = det(obj_corners[1].x, obj_corners[1].y, obj_corners[2].x, obj_corners[2].y);
+        double c = det(obj_corners[0].x, obj_corners[0].y, obj_corners[1].x, obj_corners[1].y);
+        double d = det(obj_corners[3].x, obj_corners[3].y, obj_corners[2].x, obj_corners[2].y);
+
+        std::cout << "a: " << a << " b: " << b << " c: " << c << " d: " << d << std::endl;
+        std::cout << "Cross Ratio Original" << cross_ratio_orig << std::endl;
+        std::cout << "Cross Ratio Transformed" << cross_ratio_transformed << std::endl;
+        std::cout << "Original Area: " << original_area << std::endl;
+        std::cout << "Transformed Area: " << area << std::endl;
 
         //draw the perspective transform
         //-- Draw lines between the corners (the mapped object in the scene - image_2 )
