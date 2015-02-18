@@ -36,26 +36,26 @@ using namespace std;
 * @param img_path2 Path for the second input image
 * @param homography_path Path for the file that contains the ground truth homography
 */
-int parse_input_options(AKAZEOptions &options, std::string& img_path1,
-        std::string& img_path2, std::string& homography_path,
+int parse_input_options(AKAZEOptions &options, std::string &img_path1,
+        std::string &img_path2, std::string &homography_path,
         int argc, char *argv[]);
 
-bool isLandscape(const cv::Mat& image) {
+bool isLandscape(const cv::Mat &image) {
     return image.cols > image.rows;
 }
 
-cv::Mat& resizeToFit(cv::Mat& image, CvSize size) {
+cv::Mat &resizeToFit(cv::Mat &image, CvSize size) {
     //if it is a smaller image, no resize is needed
-    if(image.rows < size.height && image.cols < size.width) {
+    if (image.rows < size.height && image.cols < size.width) {
         return image;
     }
     else {
         //determine which side to fit the scale
         double scale_ratio = 1.0;
-        if(image.cols > image.rows)
-            scale_ratio = (double)size.width / (double)image.cols;
+        if (image.cols > image.rows)
+            scale_ratio = (double) size.width / (double) image.cols;
         else {
-            scale_ratio = (double)size.height / (double)image.rows;
+            scale_ratio = (double) size.height / (double) image.rows;
         }
         cv::resize(image, image, cvSize(image.cols * scale_ratio, image.rows * scale_ratio));
     }
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     string img_path1, img_path2, homography_path;
 
     // Parse the input command line options
-    if (parse_input_options(options,img_path1,img_path2,homography_path,argc,argv))
+    if (parse_input_options(options, img_path1, img_path2, homography_path, argc, argv))
         return -1;
 
     // Read image 1 and if necessary convert to grayscale.
@@ -89,12 +89,12 @@ int main(int argc, char *argv[]) {
     }
 
     //do resizing
-    if(isLandscape(img1))
+    if (isLandscape(img1))
         img1 = resizeToFit(img1, cvSize(640, 480));
     else
         img1 = resizeToFit(img1, cvSize(480, 640));
 
-    if(isLandscape(img2))
+    if (isLandscape(img2))
         img2 = resizeToFit(img2, cvSize(640, 480));
     else
         img2 = resizeToFit(img2, cvSize(480, 640));
@@ -109,8 +109,8 @@ int main(int argc, char *argv[]) {
 }
 
 /* ************************************************************************* */
-int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::string& img_path2,
-        std::string& homography_path, int argc, char *argv[]) {
+int parse_input_options(AKAZEOptions &options, std::string &img_path1, std::string &img_path2,
+        std::string &homography_path, int argc, char *argv[]) {
 
     // If there is only one argument return
     if (argc == 1) {
@@ -123,7 +123,7 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
         // Load the default options
         options = AKAZEOptions();
 
-        if (!strcmp(argv[1],"--help")) {
+        if (!strcmp(argv[1], "--help")) {
             show_input_options_help(1);
             return -1;
         }
@@ -135,8 +135,8 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
             homography_path = argv[3];
 
         for (int i = 3; i < argc; i++) {
-            if (!strcmp(argv[i],"--soffset")) {
-                i = i+1;
+            if (!strcmp(argv[i], "--soffset")) {
+                i = i + 1;
                 if (i >= argc) {
                     cerr << "Error introducing input options!!" << endl;
                     return -1;
@@ -145,8 +145,8 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
                     options.soffset = atof(argv[i]);
                 }
             }
-            else if (!strcmp(argv[i],"--omax")) {
-                i = i+1;
+            else if (!strcmp(argv[i], "--omax")) {
+                i = i + 1;
                 if (i >= argc) {
                     cerr << "Error introducing input options!!" << endl;
                     return -1;
@@ -155,8 +155,8 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
                     options.omax = atof(argv[i]);
                 }
             }
-            else if ( !strcmp(argv[i],"--dthreshold")) {
-                i = i+1;
+            else if (!strcmp(argv[i], "--dthreshold")) {
+                i = i + 1;
                 if (i >= argc) {
                     cerr << "Error introducing input options!!" << endl;
                     return -1;
@@ -165,8 +165,8 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
                     options.dthreshold = atof(argv[i]);
                 }
             }
-            else if (!strcmp(argv[i],"--sderivatives")) {
-                i = i+1;
+            else if (!strcmp(argv[i], "--sderivatives")) {
+                i = i + 1;
                 if (i >= argc) {
                     cerr << "Error introducing input options!!" << endl;
                     return -1;
@@ -175,8 +175,8 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
                     options.sderivatives = atof(argv[i]);
                 }
             }
-            else if (!strcmp(argv[i],"--nsublevels")) {
-                i = i+1;
+            else if (!strcmp(argv[i], "--nsublevels")) {
+                i = i + 1;
                 if (i >= argc) {
                     cerr << "Error introducing input options!!" << endl;
                     return -1;
@@ -185,9 +185,8 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
                     options.nsublevels = atoi(argv[i]);
                 }
             }
-            else if (!strcmp(argv[i],"--diffusivity"))
-            {
-                i = i+1;
+            else if (!strcmp(argv[i], "--diffusivity")) {
+                i = i + 1;
                 if (i >= argc) {
                     cerr << "Error introducing input options!!" << endl;
                     return -1;
@@ -196,8 +195,8 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
                     options.diffusivity = DIFFUSIVITY_TYPE(atoi(argv[i]));
                 }
             }
-            else if (!strcmp(argv[i],"--descriptor")) {
-                i = i+1;
+            else if (!strcmp(argv[i], "--descriptor")) {
+                i = i + 1;
                 if (i >= argc) {
                     cerr << "Error introducing input options!!" << endl;
                     return -1;
@@ -210,8 +209,8 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
                     }
                 }
             }
-            else if (!strcmp(argv[i],"--descriptor_channels")) {
-                i = i+1;
+            else if (!strcmp(argv[i], "--descriptor_channels")) {
+                i = i + 1;
                 if (i >= argc) {
                     cerr << "Error introducing input options!!" << endl;
                     return -1;
@@ -219,13 +218,13 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
                 else {
                     options.descriptor_channels = atoi(argv[i]);
 
-                    if (options.descriptor_channels <= 0 || options.descriptor_channels > 3 ) {
+                    if (options.descriptor_channels <= 0 || options.descriptor_channels > 3) {
                         options.descriptor_channels = 3;
                     }
                 }
             }
-            else if (!strcmp(argv[i],"--descriptor_size")) {
-                i = i+1;
+            else if (!strcmp(argv[i], "--descriptor_size")) {
+                i = i + 1;
                 if (i >= argc) {
                     cerr << "Error introducing input options!!" << endl;
                     return -1;
@@ -238,11 +237,11 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
                     }
                 }
             }
-            else if (!strcmp(argv[i],"--verbose")) {
+            else if (!strcmp(argv[i], "--verbose")) {
                 options.verbosity = true;
             }
-            else if (!strncmp(argv[i],"--",2))
-                cerr << "Unknown command "<<argv[i] << endl;
+            else if (!strncmp(argv[i], "--", 2))
+                cerr << "Unknown command " << argv[i] << endl;
         }
     }
     else {
