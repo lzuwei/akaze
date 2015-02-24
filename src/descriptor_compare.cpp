@@ -100,12 +100,16 @@ int main(int argc, char *argv[]) {
         img2 = resizeToFit(img2, cvSize(480, 640));
 
     ImageMatcher<AKazeDetector, BruteForceHammingType> kaze_matcher(img1, img2);
-    kaze_matcher.match();
+    ImageMatchResult result_kaze = kaze_matcher.match();
     kaze_matcher.show();
+    std::cout << "akaze" << std::endl;
+    std::cout << result_kaze << std::endl;
 
     ImageMatcher<SurfDetector, BruteForceType> surf_matcher(img1, img2);
-    surf_matcher.match();
+    ImageMatchResult result_surf = surf_matcher.match();
     surf_matcher.show();
+    std::cout << "surf" << std::endl;
+    std::cout << result_surf << std::endl;
 }
 
 /* ************************************************************************* */

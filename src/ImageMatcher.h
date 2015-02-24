@@ -7,6 +7,44 @@
 const float MIN_H_ERROR = 2.50f;            ///< Maximum error in pixels to accept an inlier
 const float DRATIO = 0.80f;                 ///< NNDR Matching value
 
+class ImageMatchResult {
+public:
+    ImageMatchResult(int nkpts1, int nkpts2, int nmatches, int ninliers, int noutliers, double ratio,
+        bool valid_homography, double t_detect, double t_match, double t_homography) :
+        nkpts1(nkpts1),
+        nkpts2(nkpts2),
+        nmatches(nmatches),
+        ninliers(ninliers),
+        noutliers(noutliers),
+        ratio(ratio),
+        valid_homography(valid_homography),
+        t_detect(t_detect),
+        t_match(t_match),
+        t_homography(t_homography)
+    {
+    }
+    friend std::ostream& operator <<(std::ostream& out, const ImageMatchResult& result);
+
+    int nkpts1, nkpts2, nmatches, ninliers, noutliers;
+    double ratio;
+    bool valid_homography;
+    double t_detect, t_match, t_homography;
+};
+
+std::ostream& operator <<(std::ostream& out, const ImageMatchResult& result) {
+    out << "Number of Keypoints Image 1: " << result.nkpts1 << std::endl;
+    out << "Number of Keypoints Image 2: " << result.nkpts2 << std::endl;
+    out << "Features Extraction Time (ms): " << result.t_detect << std::endl;
+    out << "Matching Descriptors Time (ms): " << result.t_match << std::endl;
+    out << "Homography Time (ms): " << result.t_homography << std::endl;
+    out << "Number of Matches: " << result.nmatches << std::endl;
+    out << "Number of Inliers: " << result.ninliers << std::endl;
+    out << "Number of Outliers: " << result.noutliers << std::endl;
+    out << "Inliers Ratio: " << result.ratio << std::endl;
+    out << "Valid Homography: " << result.valid_homography << std::endl;
+    return out;
+}
+
 class AKazeDetector {
 public:
     void detect(cv::Mat &img1, cv::Mat &img2, std::vector<cv::KeyPoint> &kpts1, std::vector<cv::KeyPoint> &kpts2,
@@ -98,7 +136,7 @@ public:
         m_img2 = img2.clone();
     }
 
-    bool match() {
+    ImageMatchResult match() {
 
         double t1 = 0.0, t2 = 0.0;
         double t_detect = 0.0, t_match = 0.0, t_homography = 0.0;
@@ -129,19 +167,6 @@ public:
         size_t noutliers = nmatches - ninliers;
         float ratio = 100.0 * ((float) ninliers / (float) nmatches);
 
-        // Show matching statistics
-        std::cout << std::endl;
-        std::cout << m_feature_detector.name() << std::endl;
-        std::cout << "Number of Keypoints Image 1: " << nkpts1 << std::endl;
-        std::cout << "Number of Keypoints Image 2: " << nkpts2 << std::endl;
-        std::cout << "Features Extraction Time (ms): " << t_detect << std::endl;
-        std::cout << "Matching Descriptors Time (ms): " << t_match << std::endl;
-        std::cout << "Homography Time (ms): " << t_homography << std::endl;
-        std::cout << "Number of Matches: " << nmatches << std::endl;
-        std::cout << "Number of Inliers: " << ninliers << std::endl;
-        std::cout << "Number of Outliers: " << noutliers << std::endl;
-        std::cout << "Inliers Ratio: " << ratio << std::endl << std::endl;
-
         //print out the fundemental matrix
         for (int j = 0; j < h.rows; ++j) {
             for (int i = 0; i < h.cols; ++i) {
@@ -157,8 +182,8 @@ public:
         points[3] = cvPoint(0, m_img1.rows);
 
         bool matched = checkHomography(h, points);
-        std::cout << "Valid Homography: " << matched << std::endl;
-        return matched;
+        return ImageMatchResult(nkpts1, nkpts2, nmatches, ninliers, noutliers, ratio, matched,
+                t_detect, t_match, t_homography);
     }
 
     void show() {
