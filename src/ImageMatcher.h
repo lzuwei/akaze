@@ -1,11 +1,46 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/nonfree/nonfree.hpp>
+#include <opencv2/nonfree/gpu.hpp>
 #include "./lib/AKAZE.h"
 
 // Image matching options
 const float MIN_H_ERROR = 2.50f;            ///< Maximum error in pixels to accept an inlier
 const float DRATIO = 0.80f;                 ///< NNDR Matching value
+const int MAX_NUM_LIMITS = 10;
+
+struct RansacParams {
+    float ransac_epsilon;
+    int ransac_iterations;
+    //
+    float verify_points_epsilon;
+    float verify_descr_epsilon;
+    //
+    uint32_t num_limits;
+    float coefs[MAX_NUM_LIMITS];
+    //
+    int max_angle;
+    int limit0;
+    int limit300;
+    // RTM
+    float coefs2[MAX_NUM_LIMITS];
+
+    RansacParams() :
+            ransac_epsilon(5.0),
+            ransac_iterations(1000),
+            verify_points_epsilon(15.0),
+            verify_descr_epsilon(2.0),
+            num_limits(5),
+            max_angle(32),
+            limit0(6),
+            limit300(30){
+        coefs[0] = 85.0;
+        coefs[1] = 88.0;
+        coefs[2] = 90.0;
+        coefs[3] = 92.0;
+        coefs[4] = 94.0;
+    }
+};
 
 class ImageMatchResult {
 public:
@@ -102,6 +137,47 @@ private:
 
 };
 
+class GPUSurfDetector {
+public:
+    void detect(cv::Mat &img1, cv::Mat &img2, std::vector<cv::KeyPoint> &kp1, std::vector<cv::KeyPoint> &kp2,
+            cv::Mat &desc1, cv::Mat &desc2) {
+
+        cv::gpu::GpuMat kp1_gpu, kp2_gpu;
+        cv::gpu::GpuMat desc1_gpu, desc2_gpu;
+        std::vector<float> desc1_host;
+        std::vector<float> desc2_host;
+
+        cv::gpu::GpuMat img1_gpu(img1), img2_gpu(img2);
+        cv::gpu::GpuMat gpu_image_mask;
+
+        const bool extended_surf = false;
+        cv::gpu::SURF_GPU surf(500, 3, 2, extended_surf, 0.006f, false);
+
+        try {
+            surf(img1_gpu, gpu_image_mask, kp1_gpu, desc1_gpu);
+            surf(img2_gpu, gpu_image_mask, kp2_gpu, desc2_gpu);
+        }
+        catch (cv::Exception e) {
+            std::cerr << "Exception Caught in " << e.file << " on line " << e.line << "." << std::endl;
+            std::cerr << "Code: " << e.code << " Message: " << e.msg << std::endl;
+            exit(1);
+        }
+
+        //if successful, download keypoints to host
+        surf.downloadKeypoints(kp1_gpu, kp1);
+        surf.downloadKeypoints(kp2_gpu, kp2);
+        //surf.downloadDescriptors(desc1_gpu, desc1_host);
+        //surf.downloadDescriptors(desc2_gpu, desc2_host);
+
+        desc1 = cv::Mat(desc1_gpu);
+        desc2 = cv::Mat(desc2_gpu);
+    }
+
+    std::string name() {
+        return "gpu surf";
+    }
+};
+
 struct BruteForceType {
     static std::string name;
 };
@@ -184,6 +260,11 @@ public:
         bool matched = checkHomography(h, points);
         return ImageMatchResult(nkpts1, nkpts2, nmatches, ninliers, noutliers, ratio, matched,
                 t_detect, t_match, t_homography);
+    }
+
+    ImageMatchResult match2() {
+        //implement visual system ransac and post search technique
+        return ImageMatchResult(0,0,0,0,0,0.0,0,0.0,0.0,0.0);
     }
 
     void show() {

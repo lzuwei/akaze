@@ -110,6 +110,12 @@ int main(int argc, char *argv[]) {
     surf_matcher.show();
     std::cout << "surf" << std::endl;
     std::cout << result_surf << std::endl;
+
+    ImageMatcher<GPUSurfDetector, BruteForceType> gpu_surf_matcher(img1, img2);
+    ImageMatchResult result_gpu_surf = gpu_surf_matcher.match();
+    gpu_surf_matcher.show();
+    std::cout << "gpu surf" << std::endl;
+    std::cout << result_gpu_surf << std::endl;
 }
 
 /* ************************************************************************* */
