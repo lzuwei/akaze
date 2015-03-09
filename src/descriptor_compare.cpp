@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
     if (parse_input_options(options, img_path1, img_path2, homography_path, argc, argv))
         return -1;
 
-    // Read image 1 and if necessary convert to grayscale.
+    // Read image 1 and if necessary convert to grayscale
     img1 = cv::imread(img_path1, 0);
     if (img1.data == NULL) {
         cerr << "Error loading image 1: " << img_path1 << endl;
