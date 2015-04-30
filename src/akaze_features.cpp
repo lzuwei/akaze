@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
         save_keypoints(kpts_path, kpts, desc, true);
 
     if(options.save_binary) {
-        save_binary("out", kpts, desc, true);
+        save_binary(img_path, kpts, desc, true);
     }
 
     // Check out the result visually

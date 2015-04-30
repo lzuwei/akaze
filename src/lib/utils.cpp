@@ -133,9 +133,25 @@ int save_binary(const string& outFile, const std::vector<cv::KeyPoint>& kpts, co
     //close the file
     keypoint_fp.close();
 
-#define TEST_WRITE_BINARY 1
-#ifdef TEST_WRITE_BINARY
-    std::cout << "test write binary";
+    if(save_desc) {
+        ofstream desc_fp(desc_file, ios::out | ios::binary);
+        if(!desc_fp) {
+            cerr << "Couldn't open file '" << desc_file << "'!" <<endl;
+        }
+        //write binary
+        for(int i = 0; i < nkpts; ++i) {
+            for(int j = 0; j < dsize; ++j) {
+                //float format
+                float d = desc.at<float>(i,j);
+                desc_fp.write((char*)&d, sizeof(d));
+                //std::cout << d << ",";
+            }
+        }
+    }
+
+#define TEST_WRITE_BINARY 0
+#if TEST_WRITE_BINARY
+    std::cout << "test write keypoints binary";
     struct kp {
         float x;
         float y;
@@ -162,6 +178,23 @@ int save_binary(const string& outFile, const std::vector<cv::KeyPoint>& kpts, co
         << keypoints[i].scale << ", "
         << keypoints[i].angle << std::endl;
          */
+    }
+    readback.close();
+    std::cout << "... successful!" << std::endl;
+    std::cout << "test write descriptors binary";
+
+    //test desc file read back
+    readback.open(desc_file.c_str(), ios::in | ios::binary);
+    if(readback.is_open()) {
+        float readback_desc[nkpts * dsize];
+        readback.read((char*) readback_desc, sizeof(*readback_desc) * nkpts * dsize);
+        for(int i = 0; i < nkpts; ++i) {
+            for(int j = 0; j < dsize; ++j) {
+                float d = readback_desc[i * dsize + j];
+                float k = desc.at<float>(i, j);
+                assert(d == k);
+            }
+        }
     }
     readback.close();
     std::cout << "... successful!" << std::endl;
