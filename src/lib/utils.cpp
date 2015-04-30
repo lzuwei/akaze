@@ -134,7 +134,7 @@ int save_binary(const string& outFile, const std::vector<cv::KeyPoint>& kpts, co
     keypoint_fp.close();
 
     if(save_desc) {
-        ofstream desc_fp(desc_file, ios::out | ios::binary);
+        ofstream desc_fp(desc_file.c_str(), ios::out | ios::binary);
         if(!desc_fp) {
             cerr << "Couldn't open file '" << desc_file << "'!" <<endl;
         }
