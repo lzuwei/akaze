@@ -106,6 +106,67 @@ int save_binary(const string& outFile, const std::vector<cv::KeyPoint>& kpts, co
 
     std::cout << "Key Point File: " << keypoint_file << std::endl;
     std::cout << "Descriptor File: " << desc_file << std::endl;
+
+    ofstream keypoint_fp(keypoint_file.c_str(), ios::out | ios::binary);
+    if(!keypoint_fp) {
+        cerr << "Couldn't open file '" << keypoint_file << "'!" << endl;
+        return -1;
+    }
+
+    //output the file in binary format
+    for(int i = 0; i < nkpts; i++) {
+        //write the x,y location
+        float x, y, size, angle;
+        x = kpts[i].pt.x;
+        y = kpts[i].pt.y;
+        size = kpts[i].size;
+        angle = kpts[i].angle;
+        sc = 1.0f / (size * size);
+        //write binary
+        keypoint_fp.write((char*)&x, sizeof(x));
+        keypoint_fp.write((char*)&y, sizeof(y));
+        keypoint_fp.write((char*)&sc, sizeof(sc));
+        keypoint_fp.write((char*)&angle, sizeof(angle));
+        //std::cout << kpts[i].pt.x << ", " << kpts[i].pt.y << ", " << sc << ", " << kpts[i].angle << std::endl;
+    }
+
+    //close the file
+    keypoint_fp.close();
+
+#define TEST_WRITE_BINARY 1
+#ifdef TEST_WRITE_BINARY
+    std::cout << "test write binary";
+    struct kp {
+        float x;
+        float y;
+        float scale;
+        float angle;
+    };
+
+    kp keypoints[nkpts];
+
+    //test binary file
+    ifstream readback(keypoint_file.c_str(), ios::in | ios::binary);
+    readback.read((char*)keypoints, sizeof(kp) * nkpts);
+    for (int i = 0; i < nkpts; i++) {
+        assert(keypoints[i].x == kpts[i].pt.x);
+        assert(keypoints[i].y == kpts[i].pt.y);
+        assert(keypoints[i].angle == kpts[i].angle);
+        sc = kpts[i].size;
+        sc *= sc;
+        sc = 1.0f / sc;
+        assert(keypoints[i].scale == sc);
+        /*
+        std::cout << keypoints[i].x << ", "
+        << keypoints[i].y << ", "
+        << keypoints[i].scale << ", "
+        << keypoints[i].angle << std::endl;
+         */
+    }
+    readback.close();
+    std::cout << "... successful!" << std::endl;
+#endif
+    return 0;
 }
 
 /* ************************************************************************* */
