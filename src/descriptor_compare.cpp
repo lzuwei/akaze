@@ -21,7 +21,7 @@
 
 // OpenCV
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/nonfree/nonfree.hpp>
 #include "./lib/AKAZE.h"
 #include "ImageMatcher.h"
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
     if (parse_input_options(options, img_path1, img_path2, homography_path, argc, argv))
         return -1;
 
-    // Read image 1 and if necessary convert to grayscale.
+    // Read image 1 and if necessary convert to grayscale
     img1 = cv::imread(img_path1, 0);
     if (img1.data == NULL) {
         cerr << "Error loading image 1: " << img_path1 << endl;
@@ -100,12 +100,22 @@ int main(int argc, char *argv[]) {
         img2 = resizeToFit(img2, cvSize(480, 640));
 
     ImageMatcher<AKazeDetector, BruteForceHammingType> kaze_matcher(img1, img2);
-    kaze_matcher.match();
+    ImageMatchResult result_kaze = kaze_matcher.match();
     kaze_matcher.show();
+    std::cout << "akaze" << std::endl;
+    std::cout << result_kaze << std::endl;
 
     ImageMatcher<SurfDetector, BruteForceType> surf_matcher(img1, img2);
-    surf_matcher.match();
+    ImageMatchResult result_surf = surf_matcher.match();
     surf_matcher.show();
+    std::cout << "surf" << std::endl;
+    std::cout << result_surf << std::endl;
+
+    ImageMatcher<GPUSurfDetector, BruteForceType> gpu_surf_matcher(img1, img2);
+    ImageMatchResult result_gpu_surf = gpu_surf_matcher.match();
+    gpu_surf_matcher.show();
+    std::cout << "gpu surf" << std::endl;
+    std::cout << result_gpu_surf << std::endl;
 }
 
 /* ************************************************************************* */
