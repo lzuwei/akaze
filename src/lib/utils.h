@@ -62,6 +62,18 @@ void draw_keypoints(cv::Mat &img, const std::vector<cv::KeyPoint> &kpts);
 /// @param save_desc Set to 1 if we want to save the descriptors
 int save_keypoints(const std::string &outFile, const std::vector<cv::KeyPoint> &kpts, const cv::Mat &desc, bool save_desc);
 
+/// This function saves the interest points to a regular Binary file
+/// @note The format for the keypoints is single precision float (x y s o),
+///       where (x,y) is a position of the feature,
+///       s is scale (a radius) of the feature,
+///       o is a dominant orientation in radians
+/// @param outFile Basename of the output file where the points will be stored, the files will be
+///        appended with extensions .kp & .desc
+/// @param kpts Vector of points of interest
+/// @param desc Matrix that contains the extracted descriptors
+/// @param save_desc Set to true if we want to save the descriptors
+int save_binary(const std::string& outFile, const std::vector<cv::KeyPoint>& kpts, const cv::Mat& desc, bool save_desc);
+
 /// This function converts matches to points using nearest neighbor distance
 /// ratio matching strategy
 /// @param train Vector of keypoints from the first image

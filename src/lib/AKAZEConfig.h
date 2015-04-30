@@ -92,7 +92,7 @@ struct AKAZEOptions {
         min_dthreshold = 0.00001f;
 
         diffusivity = PM_G2;
-        descriptor = MLDB;
+        descriptor = SURF;
         descriptor_size = 0;
         descriptor_channels = 3;
         descriptor_pattern_size = 10;
@@ -104,7 +104,9 @@ struct AKAZEOptions {
 
         save_scale_space = false;
         save_keypoints = false;
+        save_binary = false;
         verbosity = false;
+        draw = false;
     }
 
     int omin;                       ///< Initial octave level (-1 means that the size of the input image is duplicated)
@@ -131,7 +133,9 @@ struct AKAZEOptions {
 
     bool save_scale_space;          ///< Set to true for saving the scale space images
     bool save_keypoints;            ///< Set to true for saving the detected keypoints and descriptors
+    bool save_binary;               ///< Set to true for saving the features and descriptors in binary
     bool verbosity;                 ///< Set to true for displaying verbosity information
+    bool draw;                      ///< Set to true for displaying the keypoints
 
     friend std::ostream &operator<<(std::ostream &os,
             const AKAZEOptions &akaze_options) {
@@ -154,8 +158,11 @@ struct AKAZEOptions {
         CHECK_AKAZE_OPTION(akaze_options.descriptor_size);
         // Save scale-space
         CHECK_AKAZE_OPTION(akaze_options.save_scale_space);
+        // Save binary
+        CHECK_AKAZE_OPTION(akaze_options.save_binary);
         // Verbose option for debug.
         CHECK_AKAZE_OPTION(akaze_options.verbosity);
+        CHECK_AKAZE_OPTION(akaze_options.draw);
 #undef CHECK_AKAZE_OPTIONS
 
         return os;

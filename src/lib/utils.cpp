@@ -92,6 +92,21 @@ void draw_keypoints(cv::Mat &img, const std::vector<cv::KeyPoint> &kpts) {
     }
 }
 
+int save_binary(const string& outFile, const std::vector<cv::KeyPoint>& kpts, const cv::Mat& desc, bool save_desc) {
+    int nkpts = 0, dsize = 0;
+    float sc = 0.0f;
+
+    nkpts = static_cast<int>(kpts.size());
+    dsize = static_cast<int>(desc.cols);
+
+    //generate 2 binary files by appending extensions .kp, .desc to the input file
+    string keypoint_file = outFile + ".kp";
+    string desc_file = outFile + ".desc";
+
+    std::cout << "Key Point File: " << keypoint_file << std::endl;
+    std::cout << "Descriptor File: " << desc_file << std::endl;
+}
+
 /* ************************************************************************* */
 int save_keypoints(const string &outFile, const std::vector<cv::KeyPoint> &kpts,
         const cv::Mat &desc, bool save_desc) {
@@ -479,6 +494,7 @@ void show_input_options_help(int example) {
     // Generalities
     cout_help() << "--help" << "Show the command line options" << endl;
     cout_help() << "--verbose " << "Verbosity is required" << endl;
+    cout_help() << "--draw" << "Draw the keypoints" << endl;
     cout_help() << endl;
 
     // Scale-space parameters
@@ -522,5 +538,7 @@ void show_input_options_help(int example) {
     cout_help() << "--show_results" << "Possible values below:" << endl;
     cout_help() << " " << "1 -> show detection results." << endl;
     cout_help() << " " << "0 -> don't show detection results" << endl;
+    cout_help() << "--output_binary " << "Save descriptors in binary" << endl;
+
     cout_help() << endl;
 }

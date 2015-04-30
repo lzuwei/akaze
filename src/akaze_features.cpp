@@ -99,12 +99,18 @@ int main(int argc, char *argv[]) {
     if (!kpts_path.empty())
         save_keypoints(kpts_path, kpts, desc, true);
 
+    if(options.save_binary) {
+        save_binary("out", kpts, desc, true);
+    }
+
     // Check out the result visually
-    cv::Mat img_rgb = cv::Mat(cv::Size(img.cols, img.rows), CV_8UC3);
-    cvtColor(img, img_rgb, cv::COLOR_GRAY2BGR);
-    draw_keypoints(img_rgb, kpts);
-    cv::imshow(img_path, img_rgb);
-    cv::waitKey(0);
+    if(options.draw) {
+        cv::Mat img_rgb = cv::Mat(cv::Size(img.cols, img.rows), CV_8UC3);
+        cvtColor(img, img_rgb, cv::COLOR_GRAY2BGR);
+        draw_keypoints(img_rgb, kpts);
+        cv::imshow(img_path, img_rgb);
+        cv::waitKey(0);
+    }
 }
 
 /* ************************************************************************* */
@@ -241,6 +247,12 @@ int parse_input_options(AKAZEOptions &options, std::string &img_path,
             }
             else if (!strcmp(argv[i], "--verbose")) {
                 options.verbosity = true;
+            }
+            else if(!strcmp(argv[i], "--draw")) {
+                options.draw = true;
+            }
+            else if(!strcmp(argv[i], "--output_binary")) {
+                options.save_binary = true;
             }
             else if (!strcmp(argv[i], "--output")) {
                 options.save_keypoints = true;
