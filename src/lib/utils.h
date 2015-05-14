@@ -129,6 +129,10 @@ void show_input_options_help(int example);
 
 bool checkFundamentalMatrix(const cv::Mat &h);
 
+double aspectRatio( const std::vector<cv::Point2f> &orig, const std::vector<cv::Point2f> &warped);
+
+bool isValidPolygon(const std::vector<cv::Point2f> &points);
+
 double contourAreaRatio(const std::vector<cv::Point2f> &orig, const std::vector<cv::Point2f> &warped);
 
 bool checkHomography(const cv::Mat &h, const std::vector<cv::Point2f> points);

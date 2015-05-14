@@ -99,23 +99,25 @@ int main(int argc, char *argv[]) {
     else
         img2 = resizeToFit(img2, cvSize(480, 640));
 
-    ImageMatcher<AKazeDetector, BruteForceHammingType> kaze_matcher(img1, img2);
-    ImageMatchResult result_kaze = kaze_matcher.match();
-    kaze_matcher.show();
-    std::cout << "akaze" << std::endl;
-    std::cout << result_kaze << std::endl;
+//    ImageMatcher<AKazeDetector, BruteForceHammingType> kaze_matcher(img1, img2);
+//    ImageMatchResult result_kaze = kaze_matcher.match();
+//    kaze_matcher.show();
+//    std::cout << "akaze" << std::endl;
+//    std::cout << result_kaze << std::endl;
 
     ImageMatcher<SurfDetector, BruteForceType> surf_matcher(img1, img2);
     ImageMatchResult result_surf = surf_matcher.match();
-    surf_matcher.show();
+    if (options.draw){
+        surf_matcher.show();
+    }
     std::cout << "surf" << std::endl;
     std::cout << result_surf << std::endl;
-
-    ImageMatcher<GPUSurfDetector, BruteForceType> gpu_surf_matcher(img1, img2);
-    ImageMatchResult result_gpu_surf = gpu_surf_matcher.match();
-    gpu_surf_matcher.show();
-    std::cout << "gpu surf" << std::endl;
-    std::cout << result_gpu_surf << std::endl;
+//
+//    ImageMatcher<GPUSurfDetector, BruteForceType> gpu_surf_matcher(img1, img2);
+//    ImageMatchResult result_gpu_surf = gpu_surf_matcher.match();
+//    gpu_surf_matcher.show();
+//    std::cout << "gpu surf" << std::endl;
+//    std::cout << result_gpu_surf << std::endl;
 }
 
 /* ************************************************************************* */
@@ -204,6 +206,9 @@ int parse_input_options(AKAZEOptions &options, std::string &img_path1, std::stri
                 else {
                     options.diffusivity = DIFFUSIVITY_TYPE(atoi(argv[i]));
                 }
+            }
+            else if(!strcmp(argv[i], "--draw")) {
+                options.draw = true;
             }
             else if (!strcmp(argv[i], "--descriptor")) {
                 i = i + 1;

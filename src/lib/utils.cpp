@@ -513,6 +513,99 @@ bool checkFundamentalMatrix(const cv::Mat &h) {
     return true;
 }
 
+//AspectRatio to return the aspect ratio of 2 images
+double aspectRatio(const std::vector<cv::Point2f> &orig, const std::vector<cv::Point2f> &warped) {
+    double orig_aspect, warped_width, warped_height, warped_aspect;
+    cout<<"Warped Contour Points:\n"<<warped<<endl;
+
+    if (orig[0].x - orig[1].x > orig[0].y - orig[3].y){ //Check for landscape/portrait orientation
+        orig_aspect = std::abs((orig[0].x-orig[1].x)/(orig[0].y-orig[3].y));
+    }
+    else {
+        orig_aspect = std::abs((orig[0].y-orig[3].y)/(orig[0].x-orig[1].x));
+    }
+
+
+    if (abs(warped[0].x - warped[1].x) > abs(warped[0].y - warped[3].y)){ //Check for landscape/portrait orientation
+        warped_width = (abs(warped[0].x - warped[1].x) + abs(warped[2].x - warped[3].x)) / 2;
+        warped_height = (abs(warped[0].y - warped[3].y) + abs(warped[1].y - warped[2].y)) / 2;
+    }
+    else {
+        warped_height = (abs(warped[0].x - warped[1].x) + abs(warped[2].x - warped[3].x)) / 2;
+        warped_width = (abs(warped[0].y - warped[3].y) + abs(warped[1].y - warped[2].y)) / 2;
+    }
+
+    warped_aspect=warped_height/warped_width; //Compute warped aspect ratio
+    printf("Warped height: %f, width: %f - Aspect Ratio: %f\n", warped_height, warped_width, warped_aspect);
+
+    return orig_aspect/warped_aspect;
+}
+
+bool isClockwise(const cv::Point2f &p1, const cv::Point2f &p2, const cv::Point2f &p3)
+{
+    double angle = (p2.x - p1.x)*(p3.y - p1.y) - (p2.y - p1.y)*(p3.x - p1.x);
+    return angle <= 1;
+}
+
+bool isValidPolygon(const std::vector<cv::Point2f> &points)  {
+    //Assuming the points vector stores the vertices of a polygon in a circular manner
+    //i.e.
+    //      a - top-left
+    //      b - top-right
+    //      c - bottom-right
+    //      d - bottom-left
+    //
+    //      a(0,0)-----------b(5,0)
+    //      |                |
+    //       |                |
+    //        |                |
+    //         d(0,-5)----------c(5,-5)
+    //
+    // The test checks for:
+    //     a.x - c.x > a.x - d.x
+   // if (!cv::isContourConvex(points))
+//    {
+//        double x_bottomleft, x_bottomright, x_topright, y_topright, y_bottomleft, y_bottomright;
+//        x_bottomright = points[0].x - points[2].x;
+//        x_bottomleft = points[0].x - points[3].x;
+//        y_bottomright = points[0].y - points[2].y;
+//        y_bottomleft = points[0].y - points[3].y;
+//        x_topright = points[0].x - points[1].x;
+//        y_topright = points[0].y - points[1].y;
+
+
+//        bool isValid, isIntersect;
+//        isValid = (x_bottomleft < x_bottomright) && (y_topright > y_bottomright);
+////        isIntersect = (y_topright <= y_bottomright) && (y_topright <= 0) ;
+//
+//        if (isValid)
+//        {
+//            printf("Valid Polygon returned\n");
+//            return true;
+//        }
+//        else
+//            return false;
+//    }
+//    cv::Point_<float> c_d;
+//    cv::Point_<float> b_c;
+//    cv::Point_<float> a_b;
+//    cv::Point_<float> a_d;
+//    cv::Point_<float> a_c;
+//    a_b = points[0] - points[1];
+//    a_c = points[0] - points[2];
+//    b_c = points[1] - points[2];
+//    c_d = points[2] - points[3];
+//    a_d = points[0]- points[3];
+
+    bool isValid;
+
+    isValid = isClockwise(points[0], points[1], points[2]) && isClockwise(points[1], points[2], points[3]) && isClockwise(points[2], points[3], points[0]);
+
+    return isValid;
+
+}
+
+
 double contourAreaRatio(const std::vector<cv::Point2f> &orig, const std::vector<cv::Point2f> &warped) {
     double orig_area = cv::contourArea(orig);
     double warped_area = cv::contourArea(warped);
@@ -520,12 +613,22 @@ double contourAreaRatio(const std::vector<cv::Point2f> &orig, const std::vector<
 }
 
 bool checkHomography(const cv::Mat &h, const std::vector<cv::Point2f> points) {
-    const double threshold = 1000;
-    if (checkFundamentalMatrix(h)) {
+    //const double ratio_threshold = 1000;
+    const double ratio_threshold = 50;
+    const double aspect_threshold = 5;
+    //if (checkFundamentalMatrix(h))
+    {
         std::vector<cv::Point2f> warped(4);
         cv::perspectiveTransform(points, warped, h);
-        if (contourAreaRatio(points, warped) < threshold) {
-            return true;
+        printf("Aspect Ratio values: %f\n", aspectRatio(points, warped));
+        printf("Contour Ratio values: %f\n", contourAreaRatio(points, warped));
+        //if (contourAreaRatio(points, warped) < threshold) {
+        //if ((contourAreaRatio(points, warped) < ratio_threshold) && (aspectRatio(points, warped) < aspect_threshold)) {
+        if ((contourAreaRatio(points, warped) < ratio_threshold) && isValidPolygon(warped) && (aspectRatio(points, warped) < aspect_threshold))
+
+//        if ((contourAreaRatio(points, warped) < ratio_threshold) && !(isContourConvex(warped)) && (aspectRatio(points, warped) < aspect_threshold))
+       {
+           return true;
         }
     }
     return false;
