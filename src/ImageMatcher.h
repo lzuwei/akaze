@@ -124,7 +124,8 @@ class SurfDetector {
 public:
     void detect(cv::Mat &img1, cv::Mat &img2, std::vector<cv::KeyPoint> &kp1, std::vector<cv::KeyPoint> &kp2,
             cv::Mat &desc1, cv::Mat &desc2) {
-        cv::SURF surf(500, 4, 2, false, false);
+//        cv::SURF surf(500, 4, 2, false, false);
+        cv::SURF surf(500, 3, 2, 0.006f, false);
         surf(img1, cv::Mat(), kp1, desc1);
         surf(img2, cv::Mat(), kp2, desc2);
     }
@@ -221,6 +222,13 @@ public:
         t2 = cv::getTickCount();
         t_detect = 1000.0 * (t2 - t1) / cv::getTickFrequency();
 
+        //Truncate the number of features extracted to 300
+        if (desc1.rows > 300) {
+            desc1 = desc1.rowRange(0, 300);
+        }
+        if (desc2.rows > 300) {
+            desc2 = desc2.rowRange(0, 300);
+        }
         t1 = cv::getTickCount();
         cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(DescriptorMatcherType::name);
         matcher->knnMatch(desc1, desc2, dmatches, 2);
