@@ -605,6 +605,32 @@ bool isValidPolygon(const std::vector<cv::Point2f> &points)  {
 
 }
 
+double perpDot(const cv::Point2f &A, const cv::Point2f &B)
+{
+    return ((A.x*B.y) - (A.y-B.y));
+}
+
+//Check for convexity of a quadrilateral
+bool checkOrientation(const std::vector<cv::Point2f> &points)
+{
+    bool convex = true;
+    bool negative;
+    std::vector<double> angles;
+    angles.push_back(perpDot(points[0]-points[3], points[1]-points[0]));
+    angles.push_back(perpDot(points[1]-points[0],points[2]-points[1]));
+    angles.push_back(perpDot(points[2]-points[1],points[3]-points[2]));
+    angles.push_back(perpDot(points[2]-points[3],points[0]-points[3]));
+
+    negative = angles[0] < 0;
+    for (int i = 1;i < angles.size();i++)
+    {
+        if ((angles[i] < 0) != negative)
+            return false;
+    }
+
+    return convex;
+}
+
 
 double contourAreaRatio(const std::vector<cv::Point2f> &orig, const std::vector<cv::Point2f> &warped) {
     double orig_area = cv::contourArea(orig);
@@ -624,9 +650,9 @@ bool checkHomography(const cv::Mat &h, const std::vector<cv::Point2f> points) {
         printf("Contour Ratio values: %f\n", contourAreaRatio(points, warped));
         //if (contourAreaRatio(points, warped) < threshold) {
         //if ((contourAreaRatio(points, warped) < ratio_threshold) && (aspectRatio(points, warped) < aspect_threshold)) {
-        if ((contourAreaRatio(points, warped) < ratio_threshold) && isValidPolygon(warped) && (aspectRatio(points, warped) < aspect_threshold))
-
-//        if ((contourAreaRatio(points, warped) < ratio_threshold) && !(isContourConvex(warped)) && (aspectRatio(points, warped) < aspect_threshold))
+//        if ((contourAreaRatio(points, warped) < ratio_threshold) && isValidPolygon(warped) && (aspectRatio(points, warped) < aspect_threshold))
+//        if ((contourAreaRatio(points, warped) < ratio_threshold) && checkOrientation(warped) && (aspectRatio(points, warped) < aspect_threshold))
+        if ((contourAreaRatio(points, warped) < ratio_threshold) && (isContourConvex(warped)) && (aspectRatio(points, warped) < aspect_threshold))
        {
            return true;
         }
